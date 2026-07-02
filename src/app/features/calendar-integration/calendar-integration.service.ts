@@ -61,6 +61,7 @@ import { PluginSearchResult } from '../../plugins/issue-provider/plugin-issue-pr
 import { HiddenCalendarEventsService } from './hidden-calendar-events.service';
 import { TaskArchiveService } from '../archive/task-archive.service';
 import { passesCalendarEventRegexFilter } from './calendar-event-regex-filter';
+import { getIcalFetchUrl } from './get-ical-fetch-url';
 import { NotIcalResponseError } from '../schedule/ical/is-likely-ical';
 import { sanitizeIcalUrlForDisplay } from '../issue/mapping-helper/get-issue-provider-tooltip';
 import { isCalendarProviderDisabledOnCurrentPlatform } from '../issue/providers/calendar/is-calendar-provider-disabled-on-current-platform.util';
@@ -376,7 +377,7 @@ export class CalendarIntegrationService {
   testConnection(cfg: CalendarProviderCfg): Promise<boolean> {
     //  simple http get request
     return this._http
-      .get(cfg.icalUrl, {
+      .get(getIcalFetchUrl(cfg.icalUrl), {
         responseType: 'text',
         headers: {
           ...CORS_SKIP_EXTRA_HEADERS,
@@ -424,7 +425,7 @@ export class CalendarIntegrationService {
       return of([]);
     }
     return this._http
-      .get(calProvider.icalUrl, {
+      .get(getIcalFetchUrl(calProvider.icalUrl), {
         responseType: 'text',
         headers: {
           ...CORS_SKIP_EXTRA_HEADERS,
