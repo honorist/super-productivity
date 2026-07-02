@@ -1629,7 +1629,9 @@ END:VCALENDAR`;
       );
 
       tick(0);
-      freshHttpMock.expectOne(getIcalFetchUrl(mockProvider.icalUrl)).flush(MOCK_ICAL_DATA);
+      freshHttpMock
+        .expectOne(getIcalFetchUrl(mockProvider.icalUrl))
+        .flush(MOCK_ICAL_DATA);
       tick(100);
       flushMicrotasks();
 
