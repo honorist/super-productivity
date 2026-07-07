@@ -12,6 +12,7 @@ import {
 } from '@angular/common/http/testing';
 import { provideMockStore, MockStore } from '@ngrx/store/testing';
 import { CalendarIntegrationService } from './calendar-integration.service';
+import { getIcalFetchUrl } from './get-ical-fetch-url';
 import {
   selectCalendarProviders,
   selectEnabledIssueProviders,
@@ -616,7 +617,7 @@ END:VCALENDAR`;
         tick(0);
 
         // Should only have one HTTP request due to shareReplay
-        const req = httpMock.expectOne(mockProvider.icalUrl);
+        const req = httpMock.expectOne(getIcalFetchUrl(mockProvider.icalUrl));
         req.flush(MOCK_ICAL_DATA);
 
         // Verify no additional requests
@@ -636,7 +637,7 @@ END:VCALENDAR`;
         const sub = service.calendarEvents$.subscribe(() => {});
 
         tick(0);
-        const req1 = httpMock.expectOne(mockProvider.icalUrl);
+        const req1 = httpMock.expectOne(getIcalFetchUrl(mockProvider.icalUrl));
         req1.flush(MOCK_ICAL_DATA);
 
         // Unsubscribe
@@ -671,7 +672,7 @@ END:VCALENDAR`;
         subscriptions.push(sub);
 
         tick(0);
-        const req1 = httpMock.expectOne(provider1.icalUrl);
+        const req1 = httpMock.expectOne(getIcalFetchUrl(provider1.icalUrl));
         req1.flush(MOCK_ICAL_DATA);
 
         // Change providers - switchMap should cancel old timer
@@ -679,7 +680,7 @@ END:VCALENDAR`;
         store.refreshState();
 
         tick(0);
-        const req2 = httpMock.expectOne(provider2.icalUrl);
+        const req2 = httpMock.expectOne(getIcalFetchUrl(provider2.icalUrl));
         req2.flush(MOCK_ICAL_DATA_2);
 
         // Wait for old interval - should NOT trigger request to old provider
@@ -687,7 +688,7 @@ END:VCALENDAR`;
         httpMock.expectNone(provider1.icalUrl);
 
         // But should trigger for new provider
-        const req3 = httpMock.expectOne(provider2.icalUrl);
+        const req3 = httpMock.expectOne(getIcalFetchUrl(provider2.icalUrl));
         req3.flush(MOCK_ICAL_DATA_2);
 
         discardPeriodicTasks();
@@ -707,7 +708,7 @@ END:VCALENDAR`;
         subscriptions.push(sub);
 
         tick(0);
-        const req = httpMock.expectOne(mockProvider.icalUrl);
+        const req = httpMock.expectOne(getIcalFetchUrl(mockProvider.icalUrl));
         req.error(new ProgressEvent('error'));
 
         tick(0);
@@ -729,14 +730,14 @@ END:VCALENDAR`;
 
         tick(0);
         // First request - error
-        const req1 = httpMock.expectOne(mockProvider.icalUrl);
+        const req1 = httpMock.expectOne(getIcalFetchUrl(mockProvider.icalUrl));
         req1.error(new ProgressEvent('error'));
 
         // Wait for next interval
         tick(60000);
 
         // Should retry
-        const req2 = httpMock.expectOne(mockProvider.icalUrl);
+        const req2 = httpMock.expectOne(getIcalFetchUrl(mockProvider.icalUrl));
         req2.flush(MOCK_ICAL_DATA);
 
         discardPeriodicTasks();
@@ -769,7 +770,7 @@ END:VCALENDAR`;
         tick(0);
 
         // Only enabled provider should be fetched
-        const req = httpMock.expectOne(enabledProvider.icalUrl);
+        const req = httpMock.expectOne(getIcalFetchUrl(enabledProvider.icalUrl));
         req.flush(MOCK_ICAL_DATA);
 
         // Disabled provider should not be fetched
@@ -830,7 +831,7 @@ END:VCALENDAR`;
         });
 
         tick(0);
-        const req = freshHttpMock.expectOne(mockProvider.icalUrl);
+        const req = freshHttpMock.expectOne(getIcalFetchUrl(mockProvider.icalUrl));
         req.flush(MOCK_ICAL_DATA);
 
         // Allow combineLatest and tap to execute
@@ -948,7 +949,7 @@ END:VCALENDAR`;
 
       const promise = service.testConnection(cfg);
 
-      const req = httpMock.expectOne(cfg.icalUrl);
+      const req = httpMock.expectOne(getIcalFetchUrl(cfg.icalUrl));
       req.flush(MOCK_ICAL_DATA);
 
       const result = await promise;
@@ -960,7 +961,7 @@ END:VCALENDAR`;
 
       const promise = service.testConnection(cfg);
 
-      const req = httpMock.expectOne(cfg.icalUrl);
+      const req = httpMock.expectOne(getIcalFetchUrl(cfg.icalUrl));
       req.error(new ProgressEvent('error'));
 
       const result = await promise;
@@ -972,7 +973,7 @@ END:VCALENDAR`;
 
       const promise = service.testConnection(cfg);
 
-      const req = httpMock.expectOne(cfg.icalUrl);
+      const req = httpMock.expectOne(getIcalFetchUrl(cfg.icalUrl));
       req.flush('');
 
       const result = await promise;
@@ -1012,7 +1013,7 @@ END:VCALENDAR`;
       service.requestEvents$(provider, FIXTURE_START, FIXTURE_END).subscribe((v) => {
         result = v;
       });
-      httpMock.expectOne(provider.icalUrl).flush(MOCK_ICAL_NEAR_FUTURE);
+      httpMock.expectOne(getIcalFetchUrl(provider.icalUrl)).flush(MOCK_ICAL_NEAR_FUTURE);
       // Drain the Promise microtasks from the async ICAL parser
       flushMicrotasks();
       return result;
@@ -1074,7 +1075,7 @@ END:VCALENDAR`;
       });
       subscriptions.push(sub);
 
-      const req = httpMock.expectOne(mockProvider.icalUrl);
+      const req = httpMock.expectOne(getIcalFetchUrl(mockProvider.icalUrl));
       req.flush(MOCK_ICAL_DATA);
 
       // flush() (not tick(0)) because requestEvents$ awaits loadIcalModule(),
@@ -1114,7 +1115,7 @@ END:VCALENDAR`;
       });
       subscriptions.push(sub);
 
-      const req = httpMock.expectOne(mockProvider.icalUrl);
+      const req = httpMock.expectOne(getIcalFetchUrl(mockProvider.icalUrl));
       req.flush('INVALID ICAL DATA');
 
       flush();
@@ -1131,7 +1132,7 @@ END:VCALENDAR`;
       });
       subscriptions.push(sub);
 
-      const req = httpMock.expectOne(mockProvider.icalUrl);
+      const req = httpMock.expectOne(getIcalFetchUrl(mockProvider.icalUrl));
       // Simulate Office365 returning an HTML redirect page when the share link is revoked
       req.flush(
         '<html><head><title>Object moved</title></head><body>' +
@@ -1164,7 +1165,7 @@ END:VCALENDAR`;
         });
       subscriptions.push(sub);
 
-      const req = httpMock.expectOne(mockProvider.icalUrl);
+      const req = httpMock.expectOne(getIcalFetchUrl(mockProvider.icalUrl));
       req.flush('<html>not ical</html>');
 
       flush();
@@ -1188,7 +1189,7 @@ END:VCALENDAR`;
       const sub = service.requestEvents$(mockProvider).subscribe();
       subscriptions.push(sub);
 
-      const req = httpMock.expectOne(mockProvider.icalUrl);
+      const req = httpMock.expectOne(getIcalFetchUrl(mockProvider.icalUrl));
       req.flush('nope', { status: 401, statusText: 'Unauthorized' });
 
       flush();
@@ -1410,7 +1411,7 @@ END:VCALENDAR`;
       });
 
       tick(0);
-      const req = freshHttpMock.expectOne(mockProvider.icalUrl);
+      const req = freshHttpMock.expectOne(getIcalFetchUrl(mockProvider.icalUrl));
       req.flush(MOCK_ICAL_DATA);
 
       tick(100);
@@ -1446,7 +1447,7 @@ END:VCALENDAR`;
       subscriptions.push(sub);
 
       tick(0);
-      const req = httpMock.expectOne(mockProvider.icalUrl);
+      const req = httpMock.expectOne(getIcalFetchUrl(mockProvider.icalUrl));
       req.flush(MOCK_ICAL_DATA);
 
       tick(100);
@@ -1471,7 +1472,7 @@ END:VCALENDAR`;
       subscriptions.push(sub);
 
       tick(0);
-      const req = httpMock.expectOne(mockProvider.icalUrl);
+      const req = httpMock.expectOne(getIcalFetchUrl(mockProvider.icalUrl));
       req.flush(MOCK_ICAL_DATA);
 
       tick(100);
@@ -1550,7 +1551,7 @@ END:VCALENDAR`;
       const sub = freshService.calendarEvents$.subscribe((val) => (lastValue = val));
 
       tick(0);
-      freshHttpMock.expectOne(mockProvider.icalUrl).flush(icalData);
+      freshHttpMock.expectOne(getIcalFetchUrl(mockProvider.icalUrl)).flush(icalData);
       tick(100);
       flushMicrotasks();
       freshStore.refreshState();
@@ -1628,7 +1629,9 @@ END:VCALENDAR`;
       );
 
       tick(0);
-      freshHttpMock.expectOne(mockProvider.icalUrl).flush(MOCK_ICAL_DATA);
+      freshHttpMock
+        .expectOne(getIcalFetchUrl(mockProvider.icalUrl))
+        .flush(MOCK_ICAL_DATA);
       tick(100);
       flushMicrotasks();
 
@@ -1671,8 +1674,8 @@ END:VCALENDAR`;
       tick(0);
 
       // Both providers should have requests
-      const req1 = httpMock.expectOne(provider1.icalUrl);
-      const req2 = httpMock.expectOne(provider2.icalUrl);
+      const req1 = httpMock.expectOne(getIcalFetchUrl(provider1.icalUrl));
+      const req2 = httpMock.expectOne(getIcalFetchUrl(provider2.icalUrl));
 
       req1.flush(MOCK_ICAL_DATA);
       req2.flush(MOCK_ICAL_DATA_2);
@@ -1739,8 +1742,8 @@ END:VCALENDAR`;
 
       tick(0);
 
-      const req1 = freshHttpMock.expectOne(provider1.icalUrl);
-      const req2 = freshHttpMock.expectOne(provider2.icalUrl);
+      const req1 = freshHttpMock.expectOne(getIcalFetchUrl(provider1.icalUrl));
+      const req2 = freshHttpMock.expectOne(getIcalFetchUrl(provider2.icalUrl));
 
       // Provider 1 errors
       req1.error(new ProgressEvent('error'));
@@ -1785,8 +1788,8 @@ END:VCALENDAR`;
 
       tick(0);
 
-      const req1 = httpMock.expectOne(provider1.icalUrl);
-      const req2 = httpMock.expectOne(provider2.icalUrl);
+      const req1 = httpMock.expectOne(getIcalFetchUrl(provider1.icalUrl));
+      const req2 = httpMock.expectOne(getIcalFetchUrl(provider2.icalUrl));
 
       req1.error(new ProgressEvent('error'));
       req2.error(new ProgressEvent('error'));
@@ -1816,17 +1819,17 @@ END:VCALENDAR`;
 
       // Initial request
       tick(0);
-      const req1 = httpMock.expectOne(mockProvider.icalUrl);
+      const req1 = httpMock.expectOne(getIcalFetchUrl(mockProvider.icalUrl));
       req1.flush(MOCK_ICAL_DATA);
 
       // Wait for interval
       tick(interval);
-      const req2 = httpMock.expectOne(mockProvider.icalUrl);
+      const req2 = httpMock.expectOne(getIcalFetchUrl(mockProvider.icalUrl));
       req2.flush(MOCK_ICAL_DATA);
 
       // Wait for another interval
       tick(interval);
-      const req3 = httpMock.expectOne(mockProvider.icalUrl);
+      const req3 = httpMock.expectOne(getIcalFetchUrl(mockProvider.icalUrl));
       req3.flush(MOCK_ICAL_DATA);
 
       discardPeriodicTasks();
@@ -1852,15 +1855,15 @@ END:VCALENDAR`;
 
       // Initial request
       tick(0);
-      httpMock.expectOne(provider1.icalUrl).flush(MOCK_ICAL_DATA);
-      httpMock.expectOne(provider2.icalUrl).flush(MOCK_ICAL_DATA_2);
+      httpMock.expectOne(getIcalFetchUrl(provider1.icalUrl)).flush(MOCK_ICAL_DATA);
+      httpMock.expectOne(getIcalFetchUrl(provider2.icalUrl)).flush(MOCK_ICAL_DATA_2);
 
       // Wait for shortest interval (1 minute)
       tick(60000);
 
       // Both should refresh at the shortest interval
-      httpMock.expectOne(provider1.icalUrl).flush(MOCK_ICAL_DATA);
-      httpMock.expectOne(provider2.icalUrl).flush(MOCK_ICAL_DATA_2);
+      httpMock.expectOne(getIcalFetchUrl(provider1.icalUrl)).flush(MOCK_ICAL_DATA);
+      httpMock.expectOne(getIcalFetchUrl(provider2.icalUrl)).flush(MOCK_ICAL_DATA_2);
 
       discardPeriodicTasks();
     }));
@@ -1878,7 +1881,7 @@ END:VCALENDAR`;
       subscriptions.push(sub);
 
       tick(0);
-      const req = httpMock.expectOne(mockProvider.icalUrl);
+      const req = httpMock.expectOne(getIcalFetchUrl(mockProvider.icalUrl));
       req.flush(MOCK_ICAL_DATA);
 
       // Wait for less than interval
@@ -1982,7 +1985,7 @@ END:VCALENDAR`;
       const sub = service.requestEventsForSchedule$(mockProvider).subscribe(() => {});
       subscriptions.push(sub);
 
-      const req = httpMock.expectOne(mockProvider.icalUrl);
+      const req = httpMock.expectOne(getIcalFetchUrl(mockProvider.icalUrl));
       req.flush(MOCK_ICAL_DATA);
 
       tick(0);
@@ -1999,7 +2002,7 @@ END:VCALENDAR`;
       });
       subscriptions.push(sub);
 
-      const req = httpMock.expectOne(mockProvider.icalUrl);
+      const req = httpMock.expectOne(getIcalFetchUrl(mockProvider.icalUrl));
       req.error(new ProgressEvent('error'));
 
       tick(0);
@@ -2021,7 +2024,7 @@ END:VCALENDAR`;
       });
       subscriptions.push(sub);
 
-      const req = httpMock.expectOne(mockProvider.icalUrl);
+      const req = httpMock.expectOne(getIcalFetchUrl(mockProvider.icalUrl));
       req.error(new ProgressEvent('error'));
 
       tick(0);
@@ -2061,12 +2064,12 @@ END:VCALENDAR`;
       subscriptions.push(sub);
 
       tick(0);
-      httpMock.expectOne(mockProvider.icalUrl).flush(MOCK_ICAL_DATA);
+      httpMock.expectOne(getIcalFetchUrl(mockProvider.icalUrl)).flush(MOCK_ICAL_DATA);
 
       // Multiple rapid refreshes
       for (let i = 0; i < 3; i++) {
         tick(1000);
-        httpMock.expectOne(mockProvider.icalUrl).flush(MOCK_ICAL_DATA);
+        httpMock.expectOne(getIcalFetchUrl(mockProvider.icalUrl)).flush(MOCK_ICAL_DATA);
       }
 
       discardPeriodicTasks();
@@ -2195,7 +2198,7 @@ END:VCALENDAR`;
 
       // Only the last provider should have a pending request (switchMap cancels previous)
       // Note: Due to timing, we might see requests for earlier providers
-      const req = httpMock.expectOne(provider3.icalUrl);
+      const req = httpMock.expectOne(getIcalFetchUrl(provider3.icalUrl));
       req.flush(MOCK_ICAL_DATA);
 
       discardPeriodicTasks();

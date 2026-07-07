@@ -58,6 +58,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends jq curl && rm -
 
 # Copy built app and configs
 COPY --from=build /app/dist/browser /usr/share/nginx/html
+# Kill-switch: replace the Angular service worker so clients unregister any
+# previously installed ngsw, clear its caches and always load fresh builds.
+COPY ./nginx/safety-worker.js /usr/share/nginx/html/ngsw-worker.js
 COPY ./nginx/default.conf.template /etc/nginx/templates/default.conf.template
 COPY ./docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
